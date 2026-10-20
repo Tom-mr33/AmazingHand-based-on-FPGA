@@ -77,8 +77,8 @@ git branch --show-current
 
 修改前执行 `git status`、`git branch --show-current`，阅读已有实现、`AGENTS.md`
 与相关设计文档，说明修改目的，只做当前任务范围内的改动。结构、接口、代码和参数
-变更记入当日 `docs/log/`。不要盲改 Vivado/Vitis 生成文件，不误忽略源码、XDC、TCL、
-BD、IP 或关键配置，不擅自删除硬件工程文件。
+变更记入当日 `docs/log/`。不要盲改 CubeMX/HAL 生成文件，不误忽略源码、CMake、
+链接脚本/启动文件或关键配置，不擅自删除固件工程文件。
 
 ## 5. 本地检查与提交
 

@@ -1,6 +1,0 @@
-# Raw tool reports include intentional trailing spaces; preserve their hashes.
-*.rpt -text -whitespace
-synthesis.txt -text -whitespace
-implementation.txt -text -whitespace
-tb_*.txt -text -whitespace
-evidence.json -text -whitespace

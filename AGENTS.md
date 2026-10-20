@@ -3,9 +3,9 @@
 ## Project
 
 - Repository: Tom-mr33/AmazingHand-based-on-FPGA
-- Project: AmazingHand based on FPGA
-- Main hardware platform: ALINX Z19
-- Device: Xilinx Zynq UltraScale+ MPSoC XCZU19EG
+- Project: AmazingHand (STM32F103 + Raspberry Pi)
+- Main hardware: STM32F103C8T6 (SCS bus) + Raspberry Pi (perception/strategy/UI)
+- FPGA/Z19 route: removed 2026-10-20 (competition canceled; FPGA artifacts deleted)
 
 These team rules apply to every future Codex agent working in this repository.
 Read `docs/GIT_WORKFLOW.md`, the current development log, and relevant design
@@ -131,25 +131,27 @@ repository administrator to enforce PRs, at least one approval from another team
 member, and no force pushes/deletions on main through repository rules. Do not
 change remote repository settings without authorization.
 
-## FPGA Project Rules
+## STM32 / Raspberry Pi Project Rules
 
-This repository may contain Vivado, Vitis, Verilog/SystemVerilog, C/C++, Python,
-Zynq PS software, FPGA PL logic, Linux, AI/computer vision, and robotic hand control.
+This repository contains STM32F103 firmware (HAL/CMake), Raspberry Pi host code
+(Python), C/C++, Linux, AI/computer vision, and robotic hand control. The FPGA/Z19
+route was removed on 2026-10-20; do not recreate or reference it.
 
-Before editing FPGA-related files, determine whether they are source code,
-generated files, build products, IP configuration, constraints, or hardware
-platform files. Prefer source and reproducible configuration files. Do not
-blindly edit generated Vivado/Vitis files or delete hardware project files.
+Before editing firmware, determine whether files are source, CubeMX/HAL generated
+files, build products, or configuration. Prefer application source (`Core/Src/main.c`)
+and reproducible CMake configuration. Do not blindly edit generated HAL/CMSIS files
+or delete firmware project files.
 
-Do not ignore necessary source, XDC, TCL, BD/IP configuration, or critical project
+Do not ignore necessary source, CMake, linker/startup files, or critical project
 configuration. Review existing `.gitignore` and suggest changes before broad
 updates. Only obvious logs, caches, and temporary build files may be cautiously
 added without compromising reproducibility.
 
-Read `docs/design/interface.md` before PS/PL interface changes. Record authorized
-structure, interface, code, or parameter changes in `docs/log/YYYY-MM-DD.md`.
-Distinguish implemented features from planned features in reports. Do not install
-board-targeted dependencies into a PC environment without checking compatibility.
+Read `docs/design/architecture_mcu_rpi.md` before Pi↔STM32 interface changes.
+Record authorized structure, interface, code, or parameter changes in
+`docs/log/YYYY-MM-DD.md`. Distinguish implemented features from planned features in
+reports. Do not install board-targeted dependencies into a PC environment without
+checking compatibility.
 
 ## Safety
 
@@ -169,5 +171,5 @@ Do not alter global Git configuration, substitute repository URLs, use someone
 else's token, or bypass access permissions. Never print credentials.
 If unsure, stop and ask with the concrete issue and preserved state.
 
-Unless explicitly authorized, do not modify business code, FPGA design, Vitis
-applications, AI models, or hand-control code during workflow/setup tasks.
+Unless explicitly authorized, do not modify business code, STM32 firmware,
+Raspberry Pi applications, AI models, or hand-control code during workflow/setup tasks.

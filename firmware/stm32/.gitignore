@@ -1,0 +1,14 @@
+# Build outputs
+build/
+*.elf
+*.bin
+*.hex
+*.map
+
+# Backup files
+.vscode/**
+.settings/**
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/c_cpp_properties.json
+!.settings/ide.store.json

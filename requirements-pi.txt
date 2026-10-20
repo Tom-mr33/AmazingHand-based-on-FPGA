@@ -1,0 +1,11 @@
+# Raspberry Pi OS 64-bit Bookworm（aarch64，Python 3.11）host 依赖
+# 旧版 Python 3.9 不支持本仓库部分类型语法（X | Y），不要用。
+# 说明：2026-10-20 起主链路为 树莓派 + STM32F103；MuJoCo 只在 PC 数字孪生使用，
+#       不要安装到树莓派。视觉后端 ncnn 的 aarch64 wheel 可用性因系统而异，
+#       装不上时先用 mock/PC 推理，后续再评估 NCNN C++ 桥或 OpenCV DNN。
+numpy>=1.24
+opencv-python-headless>=4.8
+PyYAML>=6.0
+pyserial>=3.5
+vosk>=0.3.45
+# ncnn>=1.0.20240410   # 可选，按实际 wheel 情况启用

@@ -1,4 +1,0 @@
-*.json -text -whitespace
-*.txt -text -whitespace
-*.rpt -text -whitespace
-watchdog-probe.py -text -whitespace

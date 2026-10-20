@@ -5,9 +5,10 @@
 这是全项目控制链路的**协议行为参考模型（golden model）**：
 
 - ``host/app/control/backend_serial.py`` : 用它组包/解包真实舵机（USB-TTL）
+- ``host/app/control/backend_mcu.py``    : 经 STM32 透传访问 1Mbps SCS 总线
 - ``host/app/control/backend_sim.py``    : 用它驱动 ``scs_sim.VirtualServoBus``
-- ``fpga/rtl/scs_protocol.sv``           : 逐字节对照本文件验证（TB 比对）
-- ``tools/calibrate_servo.py``           : 复用组包函数
+- ``firmware/stm32``                     : 字节泵（协议语义仍在本文件）
+- ``tools/blink_servo.py`` / ``probe_servos.py`` : 复用组包函数
 
 协议帧格式（SCS 系列，与 Dynamixel protocol 1.0 同构）::
 
@@ -28,8 +29,8 @@
 ====
 - 所有多字节寄存器均为 **小端**（低字节在前），与 Feetech 官方一致。
 - 地址表集中在 :class:`Reg`，个别地址以 "TODO(实机校验)" 标注：
-  无实机前按 SCS 系列公开资料填写，上板跑 ``tools/calibrate_servo.py``
-  时用 FD 调试工具核对后定稿（interface.md 待定项 1/2 同批解决）。
+  无实机前按 SCS 系列公开资料填写，实机用 ``probe_servos.py`` / ``blink_servo.py``
+  核对后定稿（待定项 1/2 同批解决）。
 - 单位换算与 rustypot ``Scs0009PyController`` 行为对齐：
   位置 raw 0..4095 对应 -pi..+pi（12bit 磁编码）。
 """
@@ -117,7 +118,7 @@ class Reg:
     REGISTERED_INSTRUCTION = (0x42, 1)
     MOVING = (0x43, 1)
 
-    # 连读视图：力控一个 READ 时隙取回的全部反馈（见 interface.md §6）
+    # 连读视图：一次 READ 取回位置/速度/负载/电压/温度
     FEEDBACK_ADDR = PRESENT_POSITION[0]  # 0x3A
     FEEDBACK_LEN = 8  # pos(2)+speed(2)+load(2)+voltage(1)+temp(1) = 0x3A..0x41
 
@@ -197,7 +198,7 @@ def build_sync_write(addr: int, data_len: int, table: Mapping[int, bytes]) -> by
 
     帧内 params = [addr, data_len, (id, data...) * N]，
     其中 ``data_len`` 为每舵机数据字节数（须一致）。
-    这是 1kHz 时隙下发 8 舵机目标的核心指令（interface.md §6）。
+    这是批量下发 8 舵机目标的核心指令。
     """
     if not table:
         raise ValueError("sync_write table must be non-empty")

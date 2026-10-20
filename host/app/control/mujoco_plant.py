@@ -1,4 +1,4 @@
-"""Real MuJoCo plant shared by the local Host backend and the HIL adapter.
+"""Real MuJoCo plant used by the local Host backend.
 
 Raw conversion follows the repository's SIM profile, not calibrated SCS0009.
 """

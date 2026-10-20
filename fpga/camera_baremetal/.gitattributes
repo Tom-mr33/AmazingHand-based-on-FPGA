@@ -1,5 +1,0 @@
-# Historical inputs are archived byte-for-byte, including upstream whitespace.
-src/** -text -whitespace
-camera.ld -text -whitespace
-build/** -text -whitespace
-*.elf binary

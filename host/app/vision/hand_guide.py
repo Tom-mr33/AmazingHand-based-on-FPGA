@@ -1,4 +1,4 @@
-"""ArUco 手背标记跟踪 + 就位判定 + 引导输出（project_framework F2c）。
+"""ArUco 手背标记跟踪 + 就位判定 + 引导输出。
 
 约定：手背贴 4X4_50 字典 id=0 标记（打印尺寸 40mm，``tools/`` 生成 PDF）。
 俯视相机检测 marker → solvePnP（相机内参来自标定）→ 手-目标相对偏移

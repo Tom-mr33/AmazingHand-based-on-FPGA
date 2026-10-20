@@ -3,13 +3,11 @@
 双重身份
 ========
 1. PC 冒烟/全链路空转的默认后端（``settings.yaml: backend: sim``）；
-2. **RTL grasp_fsm.sv 的行为 golden model**：内置的软件状态机
+2. **STM32 抓取 FSM 的行为 golden model**：内置的软件状态机
    （PREGRASP→CLOSING→HOLD→RELEASING→PROTECT）与状态迁移条件
-   （到位/力矩阈值/超时/故障）必须与未来 RTL 实现逐拍对照——
-   ``fpga/sim/tb_grasp_fsm.sv`` 将以同一 GraspPlan + 同一故障注入序列
-   比对状态轨迹。
+   （到位/力矩阈值/超时/故障）作为后续 STM32 C 实现的行为参照。
 
-物理换算（均为 SIM/占位，真值待标定，见 interface.md 待定项 1/2）：
+物理换算（均为 SIM/占位，真值待标定）：
 - 关节角：deg（相对中位）→ raw 走 scs_protocol.rad_to_raw；
 - 力矩等级 0..15 → 负载阈值 raw = level * 64（占位线性映射）。
 """
@@ -30,7 +28,7 @@ from app.control.servo_base import (
     ServoFeedback,
 )
 
-#: 力矩等级 → 负载阈值 raw 的占位映射（TODO 实机校验，interface.md 待定项 2）
+#: 力矩等级 → 负载阈值 raw 的占位映射（TODO 实机校验，待定项 2）
 TORQUE_LEVEL_STEP = 64
 #: CLOSING 态力控判定的最小闭合时长（秒），避免瞬时负载误触发
 MIN_CLOSING_S = 0.05
@@ -122,7 +120,7 @@ class SimBackend(ServoBackend):
         err_bitmap = 0
         for i, fb in enumerate(feedback):
             if not fb.online:
-                err_bitmap |= 1 << (i * 3 + 1)  # 通道 i 掉线位（布局见 interface.md §3）
+                err_bitmap |= 1 << (i * 3 + 1)  # 通道 i 掉线位
             elif fb.error_bits & sp.ERR_OVERLOAD:
                 err_bitmap |= 1 << (i * 3)
             elif fb.error_bits & sp.ERR_OVERHEAT:
@@ -144,7 +142,7 @@ class SimBackend(ServoBackend):
         return self._virtual_clock_us
 
     # ------------------------------------------------------------------
-    # 时间推进 + 软件状态机（RTL grasp_fsm.sv 的行为对照）
+    # 时间推进 + 软件状态机（STM32 抓取 FSM 的行为对照）
     # ------------------------------------------------------------------
 
     def tick(self, dt_s: float) -> None:
@@ -199,7 +197,7 @@ class SimBackend(ServoBackend):
                 self._enter(FsmState.HOLD)  # 超时同样停止（快照 timeout=True 区分）
 
         elif self._fsm == FsmState.HOLD:
-            # 保持：持续重申当前锁定位置（真实 RTL 以寄存器保持，软件环需重发）
+            # 保持：持续重申当前锁定位置（STM32 以寄存器保持，软件环需重发）
             if self._closing_hold_raw:
                 table = {
                     sid: bytes([r & 0xFF, (r >> 8) & 0xFF, 0x00, 0x00, 0xFF, 0xFF])

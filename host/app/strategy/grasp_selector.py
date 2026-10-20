@@ -1,6 +1,6 @@
 """抓取策略 —— (类别, 尺寸, 朝向) → GraspPlan 查表选择器。
 
-参数来源三层（project_framework F3）：
+参数来源三层：
 1. ``grasp_table.json`` 预标定参数（当前为占位，source 字段标注溯源）；
 2. ``sim/verify_grasp.py`` MuJoCo 离线验证后回填（source=mujoco）；
 3. 实机标定终值（source=calib）。

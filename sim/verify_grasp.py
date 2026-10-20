@@ -1,4 +1,4 @@
-"""MuJoCo 数字孪生 —— 抓取参数表批量验证（project_framework F6/F3）。
+"""MuJoCo 数字孪生 —— 抓取参数表批量验证。
 
 流程（对应 grasp_table 每条参数）::
 
@@ -6,7 +6,7 @@
       → 前向仿真至稳定 → 指尖间距矩阵 + 可达性 + 自碰检查 → 判定报告
 
 用途：
-1. grasp_table.json 参数从 ``source=default`` 升级为 ``source=mujoco``（F3 验收）；
+1. grasp_table.json 参数从 ``source=default`` 升级为 ``source=mujoco``；
 2. 仿真/实物同角度对比的基准数据（render_compare.py 引用同一 PoseResult）。
 
 引用模型：``AmazingHand/Demo/AHSimulation/AH_Right/mjcf/scene.xml``
@@ -14,7 +14,7 @@
 
 Caveat：上游执行器参数（kp=10/forcerange=±10）为理想值，**不是** SCS0009
 真实力矩特性——本工具当前验证"几何可达性与包络间隙"，接触力数值仅定性参考；
-真实力控阈值以实机标定（interface.md 待定项 2）为准。
+真实力控阈值以实机标定（待定项 2）为准。
 
 运行::
 

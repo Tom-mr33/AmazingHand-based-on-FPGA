@@ -1,9 +1,0 @@
-set addr(preview_request) 0x0000000000147304
-set addr(preview_sequence) 0x0000000000147308
-set addr(preview_status) 0x0000000000147330
-set addr(preview_rgb) 0x000000000011d000
-set addr(board_frames) 0x000000000014730c
-set addr(focus_request) 0x000000000011a008
-set addr(focus_applied) 0x000000000011a00c
-set addr(focus_result) 0x0000000000147300
-set addr(debug_info) 0x0000000000147310

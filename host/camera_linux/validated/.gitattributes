@@ -1,3 +1,0 @@
-# Tested AArch64 executable/kernel module: preserve exact deployed bytes.
-capture_camera0 binary
-*.ko binary

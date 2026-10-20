@@ -11,10 +11,6 @@
 *.png binary
 *.mp4 binary
 *.pdf binary
-*.bit binary
-*.xsa binary
-*.hwh binary
-*.ltx binary
 *.onnx binary
 *.ncnn.bin binary
 *.ncnn.param binary

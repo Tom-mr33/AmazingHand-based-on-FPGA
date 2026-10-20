@@ -1,14 +1,13 @@
-# host/ PS 侧运行依赖（ALINX Z19 Ubuntu, aarch64, Python 3.10+）
+# host/ 树莓派/PC 运行依赖（Python 3.10+；树莓派建议 64-bit Bookworm 3.11）
+# 树莓派精简依赖见 requirements-pi.txt；本文件保留 PC/MuJoCo/工具依赖。
 vosk==0.3.45
 opencv-python==4.9.0.80
 numpy==1.26.4
 PyYAML==6.0.1
 pyserial==3.5
 
-# 视觉推理后端（二选一或并存，由 host/app/config/settings.yaml 切换）
-# 保底后端：A53 CPU 推理
+# 视觉推理后端：CPU NCNN
 ncnn==1.0.20240410
-# 加速后端：DPU xmodel 由 Vitis AI 运行时加载（vart-*, 板端随镜像安装，不进 pip）
 
 # PC 侧 tools/sim 依赖（模型导出、验证与数字孪生，Windows 已验证）
 mujoco==3.15.0      # sim/ 数字孪生（verify_grasp / render_compare）

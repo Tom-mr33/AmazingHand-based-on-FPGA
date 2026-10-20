@@ -1,9 +1,0 @@
-test_mmap_layout_and_stop_not_target (test_hil_server.BridgeTests.test_mmap_layout_and_stop_not_target) ... ok
-test_real_socket_ndjson_and_feedback_forwarding (test_hil_server.BridgeTests.test_real_socket_ndjson_and_feedback_forwarding) ... ok
-test_refuses_legacy_hardware_before_writes (test_hil_server.BridgeTests.test_refuses_legacy_hardware_before_writes) ... ok
-test_rejects_bad_frames (test_hil_server.BridgeTests.test_rejects_bad_frames) ... ok
-
-----------------------------------------------------------------------
-Ran 4 tests in 0.007s
-
-OK

@@ -1,11 +1,10 @@
-"""软件环后端 —— USB-TTL 直驱舵机总线（F5 对比实验的基准环）。
+"""软件环后端 —— USB-TTL 直驱舵机总线（Pi/PC 调试与对比基准）。
 
-- 通道：Waveshare 总线驱动板（PS USB3.0 → /dev/ttyUSB0），1Mbps 半双工；
-- 协议：``scs_protocol`` 组包/解包（与 sim/fpga 后端同一份 golden model）；
-- 状态机：与 backend_sim 相同逻辑的软件实现（Python 循环）——
-  这正是对比实验的意义：**同一状态机，Python 环 vs RTL 环**，
+- 通道：USB-TTL / 总线驱动板（树莓派或 PC USB → /dev/ttyUSB0），1Mbps 半双工；
+- 协议：``scs_protocol`` 组包/解包（与 sim/mcu 后端同一份 golden model）；
+- 状态机：与 backend_sim 相同逻辑的软件实现（Python 循环）；
   ``read_loop_timestamp`` 用 ``time.perf_counter_ns()`` 供抖动统计；
-- 板端运行（Linux, aarch64）；PC 上构造会被拒绝（防止误插真实硬件之外的场景）。
+- 树莓派/Linux 或 Windows（COMx）运行。
 """
 
 from __future__ import annotations
@@ -142,7 +141,7 @@ class SerialBackend(ServoBackend):
         return time.perf_counter_ns()
 
     def tick(self, dt_s: float) -> None:
-        """软件环：状态机在 Python 循环里推进（与 RTL 环对比的核心差异）。"""
+        """软件环：状态机在 Python 循环里推进（与 STM32 硬件环对比的核心差异）。"""
         self._state_t += dt_s
         plan = self._plan
         if plan is None:
