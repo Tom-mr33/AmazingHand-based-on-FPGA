@@ -82,8 +82,12 @@ Pi 只发高层计划并显示遥测。协议冻结前不实现。
 
 | 功能 | 文件 |
 |---|---|
-| 传输层（帧长前缀） | `host/app/control/mcu_link.py` |
-| Pi 侧后端（软件 FSM） | `host/app/control/backend_mcu.py` |
+| 传输层（帧长前缀，bring-up） | `host/app/control/mcu_link.py` |
+| Pi 侧后端（软件 FSM，bring-up） | `host/app/control/backend_mcu.py` |
+| STM32 控制协议（Pi 侧） | `host/app/control/stm32_protocol.py` |
+| STM32 控制后端（正式） | `host/app/control/backend_stm32.py` |
+| STM32 固件协议模块 | `firmware/stm32/Core/{Inc,Src}/ah_protocol.*` |
+| 控制协议设计 | `docs/design/stm32_control_protocol.md` |
 | 主状态机/后端工厂 | `host/app/main.py` |
 | 配置 | `host/config/settings.yaml`（`mcu:` 段） |
 | STM32 固件 | `firmware/stm32/`（HAL 工程，main.c 为字节泵） |
@@ -102,7 +106,9 @@ Pi 只发高层计划并显示遥测。协议冻结前不实现。
 - 工具：blink_servo、probe_servos；
 - 验收：8 个 ID 全通；单舵机方向/中位标定；整手张开/闭合/停止。
 
-### Phase 2（下一步，目标：实时性与安全）
+### Phase 2（进行中，目标：实时性与安全）
+- [x] 协议/主机后端/固件 C 编解码（`stm32_protocol.py`、`backend_stm32.py`、`ah_protocol.*`）
+- [ ] `main.c` 接入 1 ms 调度 + SCS 总线 + FSM（下一步）
 - 把 `grasp_fsm` 逻辑从 Python 下沉到 STM32 C；
 - STM32 内部固定周期轮询 + 负载接触判定 + 超时/掉线/过温/过载保护；
 - STM32 独立看门狗：Pi 断连 500 ms 内卸力/保护；
@@ -136,8 +142,8 @@ sudo raspi-config   # Interface -> Serial -> 启用硬件串口，关闭串口�
 ls -l /dev/serial0
 
 # 2) 代码与依赖
-git clone https://github.com/Tom-mr33/AmazingHand-based-on-FPGA.git
-cd AmazingHand-based-on-FPGA
+git clone https://github.com/Tom-mr33/AmazingHand-based-on-stm32.git
+cd AmazingHand-based-on-stm32
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements-pi.txt

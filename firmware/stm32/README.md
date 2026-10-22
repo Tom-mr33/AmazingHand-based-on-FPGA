@@ -67,6 +67,14 @@ STM32 -> PC:  [len u8][len 字节 SCS 响应]            len = 0 表示总线静
 - 115200 的 PC 链路是瓶颈：**控制更新率 ≤ 100 Hz**，不适合 1 kHz 实时环或
   抖动对比；1 kHz 环后续由 STM32 内部 FSM/调度实现，或改用更高带宽的 USB 总线适配器。
 
+## 控制协议模块（Phase 2 起步）
+
+- `Core/Inc/ah_protocol.h`、`Core/Src/ah_protocol.c`：帧编解码/CRC16/命令/遥测/
+  DIRECT_TARGETS/CONFIG，与 Pi 侧 `host/app/control/stm32_protocol.py` 同格式；
+- 主机侧单测：`firmware/stm32/tests/test_ah_protocol.c`（gcc 可跑，见 tests/README.md）；
+- **当前 `main.c` 仍是 passthrough 字节泵**；下一步把 1 ms 调度、SCS 总线、FSM 接入；
+- 控制固件完成前，Pi 用 `backend_mcu` 做 bring-up；完成后切 `backend_stm32`。
+
 ## 上电自检（先单舵机，后整手）
 
 ```sh

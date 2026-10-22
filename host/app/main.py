@@ -13,8 +13,8 @@
   :class:`VisionSource` 协议抽象，正式模块（kws.py / detector.py）落地后替换
   Mock 实现即可，状态机零改动；
 - ``run()`` 显式 tick 驱动、返回状态历史——确定性可测（冒烟断言状态序列）；
-- 后端切换 = settings.yaml 一行（backend_sim/serial/mcu 实现同一接口）；
-  2026-10-20 起主链路为树莓派 + STM32 透传（backend=mcu）。
+- 后端切换 = settings.yaml 一行（sim/serial/mcu/stm32 实现同一接口）；
+  mcu=STM32 原始 SCS 透传（bring-up）；stm32=STM32 内部 FSM/保护（正式控制）。
 """
 
 from __future__ import annotations
@@ -248,6 +248,8 @@ def load_settings(path: Path | None = None) -> dict:
         "serial": {"port": "/dev/ttyUSB0", "baudrate": 1000000, "timeout_s": 0.05},
         "mcu": {"port": "/dev/serial0", "baud": 115200, "timeout_s": 0.05,
                 "feedback_period_s": 0.05},
+        "stm32": {"port": "/dev/serial0", "baud": 115200, "timeout_s": 0.2,
+                  "heartbeat_s": 0.1, "telemetry_stale_s": 1.0},
         "servo": {
             "ids": [1, 2, 3, 4, 5, 6, 7, 8],
             "middle_pos_deg": [3, 0, -5, -8, -2, 5, -12, 0],
@@ -270,7 +272,7 @@ def load_settings(path: Path | None = None) -> dict:
 
 
 def build_backend(name: str, settings: dict) -> ServoBackend:
-    """后端工厂：换硬件只改 settings.yaml（architecture.md 规则 1）。"""
+    """后端工厂：换硬件只改 settings.yaml。"""
     from app.control.backend_sim import SimBackend
 
     middle = tuple(settings["servo"]["middle_pos_deg"])
@@ -292,6 +294,15 @@ def build_backend(name: str, settings: dict) -> ServoBackend:
                           timeout_s=float(m["timeout_s"]), middle_deg=middle,
                           servo_ids=ids,
                           feedback_period_s=float(m.get("feedback_period_s", 0.05)))
+    if name == "stm32":
+        from app.control.backend_stm32 import Stm32Backend
+
+        s = settings["stm32"]
+        return Stm32Backend(port=s["port"], baud=int(s["baud"]),
+                            timeout_s=float(s["timeout_s"]),
+                            heartbeat_s=float(s.get("heartbeat_s", 0.1)),
+                            telemetry_stale_s=float(s.get("telemetry_stale_s", 1.0)),
+                            middle_deg=middle, servo_ids=ids)
     raise ValueError(f"unknown backend: {name}")
 
 
@@ -309,8 +320,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_mujoco(arguments)
     parser = argparse.ArgumentParser(description="AmazingHand AI host 主程序")
     parser.add_argument("--mujoco", action="store_true", help="实时交互 MuJoCo；其余选项见 --mujoco --help")
-    parser.add_argument("--backend", choices=["sim", "serial", "mcu"], default=None,
-                        help="mcu=树莓派+STM32 透传")
+    parser.add_argument("--backend", choices=["sim", "serial", "mcu", "stm32"], default=None,
+                        help="mcu=STM32 原始 SCS 透传；stm32=STM32 内部 FSM")
     parser.add_argument("--mock-voice", default=None,
                         help='mock 语音脚本，逗号分隔，如 "抓起香蕉,放下"')
     parser.add_argument("--config", default=None, help="settings.yaml 路径")

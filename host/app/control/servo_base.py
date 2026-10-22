@@ -4,7 +4,8 @@
 
     backend_sim.py     虚拟舵机（PC 冒烟/全链路空转，确定性 tick）
     backend_serial.py  USB-TTL 软件环（真实舵机，调试/对比基准）
-    backend_mcu.py     树莓派/PC → STM32F103 → 1Mbps SCS 总线（当前主链路）
+    backend_mcu.py     树莓派/PC → STM32F103 原始 SCS 透传（bring-up）
+    backend_stm32.py   STM32 内部 FSM/保护，Pi 只发高层命令（正式控制）
 
 各后端接受**同一份 :class:`GraspPlan` 输入**，行为差异只来自控制环本身；
 ``read_loop_timestamp()`` 提供各环的本地时间基准用于抖动统计。

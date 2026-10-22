@@ -1,7 +1,7 @@
 # AmazingHand AI — host 侧配置（数据与代码分离，architecture.md 规则 4）
 # 修改后无需改代码；后端切换 = 改 backend 一行
 
-backend: sim          # sim | serial | mcu；树莓派实机用 mcu
+backend: sim          # sim | serial | mcu | stm32；bring-up 用 mcu，正式控制用 stm32
 
 serial:
   port: /dev/ttyUSB0  # Waveshare 总线驱动板（软件环后端）
@@ -13,6 +13,13 @@ mcu:                  # 树莓派/PC ↔ STM32F103 透传（firmware/stm32）
   baud: 115200        # 与固件 USART2 一致；勿改成 1Mbps
   timeout_s: 0.05     # 单次事务读超时
   feedback_period_s: 0.05  # 反馈轮询周期（115200 链路上不要太快）
+
+stm32:                # STM32 内部 SCS 调度 + FSM + 保护（正式控制）
+  port: /dev/serial0
+  baud: 115200
+  timeout_s: 0.2
+  heartbeat_s: 0.1        # 心跳周期；STM32 watchdog 500ms
+  telemetry_stale_s: 1.0  # 超过则判离线/fault
 
 
 servo:
