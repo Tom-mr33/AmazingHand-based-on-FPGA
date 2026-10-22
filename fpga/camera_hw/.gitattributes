@@ -1,4 +1,0 @@
-# Preserve original source/config hashes and original upstream formatting.
-project/** -text -whitespace
-validated/*.bit binary
-validated/*.xsa binary

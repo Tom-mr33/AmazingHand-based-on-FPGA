@@ -1,17 +1,14 @@
 """舵机后端抽象基类 —— 上层只认接口，换硬件只改 settings.yaml 一行。
 
-三后端（architecture.md 模块化规则 1）::
+后端（2026-10-20 起主链路为 mcu）::
 
     backend_sim.py     虚拟舵机（PC 冒烟/全链路空转，确定性 tick）
-    backend_serial.py  USB-TTL 软件环（真实舵机，对比基准）
-    backend_fpga.py    AXI 寄存器 → RTL 控制环（作品核心）
+    backend_serial.py  USB-TTL 软件环（真实舵机，调试/对比基准）
+    backend_mcu.py     树莓派/PC → STM32F103 原始 SCS 透传（bring-up）
+    backend_stm32.py   STM32 内部 FSM/保护，Pi 只发高层命令（正式控制）
 
-对比实验（project_framework F5）的契约保证：三个后端接受**同一份
-:class:`GraspPlan` 输入**，行为差异只来自控制环本身（Python 循环 vs RTL），
+各后端接受**同一份 :class:`GraspPlan` 输入**，行为差异只来自控制环本身；
 ``read_loop_timestamp()`` 提供各环的本地时间基准用于抖动统计。
-
-接口与 interface.md v0.2 寄存器映射一一对应：
-CMD(0x01 启动/0x02 释放)、TARGET_i、TORQUE_LIM、TIMING、STATUS/FSM_STATE/MEAS/LOAD/TEMP/ERR_BITMAP。
 """
 
 from __future__ import annotations
@@ -25,7 +22,7 @@ N_JOINTS = 8
 
 
 class FsmState(IntEnum):
-    """grasp_fsm 状态编码（与 interface.md §3 FSM_STATE 寄存器一致）。"""
+    """抓取状态编码（与 backend_sim / STM32 FSM 一致）。"""
 
     IDLE = 0
     PREGRASP = 1
@@ -107,14 +104,14 @@ class ServoBackend(ABC):
 
     @abstractmethod
     def set_targets(self, angles_deg: tuple[float, ...], speed_raw: int = 0) -> None:
-        """直接角度模式（interface.md CTRL.mode=0）：逐关节下发目标。"""
+        """直接角度模式：逐关节下发目标。"""
 
     @abstractmethod
     def start_grasp_fsm(self, plan: GraspPlan) -> None:
-        """状态机模式（CTRL.mode=1 + CMD=0x01）：下发目标/力矩/时序并启动。
+        """状态机模式：下发目标/力矩/时序并启动抓取 FSM。
 
-        RTL 后端：写寄存器后由 PL 内 grasp_fsm 硬件执行；
-        sim/serial 后端：由等价软件状态机执行（行为对照 golden model）。
+        mcu/serial/sim 后端：由 Pi/PC 侧等价软件状态机执行；
+        Phase 2 计划把该 FSM 下沉到 STM32。
         """
 
     @abstractmethod
@@ -131,7 +128,7 @@ class ServoBackend(ABC):
 
     @abstractmethod
     def read_loop_timestamp(self) -> int:
-        """环时间戳：sim=虚拟时钟 µs，serial=perf_counter ns，fpga=TIMESTAMP 寄存器。"""
+        """环时间戳：sim=虚拟时钟 µs，serial/mcu=perf_counter ns。"""
 
     def tick(self, dt_s: float) -> None:
         """时间推进钩子：仅 sim 后端有实际行为（确定性动力学），其余为空。"""

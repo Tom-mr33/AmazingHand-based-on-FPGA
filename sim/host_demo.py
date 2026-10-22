@@ -114,30 +114,6 @@ class CommandMailbox:
             self.state = state
 
 
-class HilController(LiveController):
-    def __init__(self, address):
-        from app.control.backend_hil import HilBackend
-
-        super().__init__(HilBackend(address))
-        self.message = "PL HIL: press E to reset before commanding motion"
-
-    def telemetry(self):
-        plant = self.backend.plant
-        reply = self.backend.reply or {}
-        return {
-            "source": "pl", "seq": self._seq, "state": reply.get("state", "PROTECT"),
-            "stopped": self.backend.stopped, "timeout": bool(reply.get("fault", 0) & 1),
-            "torque_enabled": reply.get("torque_enabled", False),
-            "category": self.category, "sim_time_s": float(plant.data.time),
-            "positions_deg": np.degrees(plant.positions_rad).tolist(),
-            "ctrl_deg": np.degrees(plant.data.ctrl).tolist(),
-            "target_raw": reply.get("target_raw", []),
-            "load_raw": plant.feedback_raw()["load_raw"],
-            "actuator_force": plant.data.actuator_force.tolist(),
-            "message": self.message, "events": list(self.events), "pl": reply,
-        }
-
-
 def serve_commands(mailbox, port):
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_args):
@@ -191,13 +167,7 @@ def draw_panel(renderer, camera, controller, state):
     def text(value, x, y, color=(228, 232, 237), scale=0.57):
         cv2.putText(image, value, (x, y), cv2.FONT_HERSHEY_SIMPLEX, scale, color, 1, cv2.LINE_AA)
 
-    text("AMAZINGHAND  /  " + ("PL HIL CONTROL" if state["source"] == "pl" else "LIVE HOST CONTROL"),
-         24, 34, scale=0.8)
-    if state["source"] == "pl":
-        pl = state["pl"]
-        text(f"PL tick {pl.get('pl_tick')}  |  accepted {pl.get('accepted_seq')}  |  "
-             f"feedback {pl.get('feedback_count')}  |  commands {pl.get('command_count')}  |  fault {pl.get('fault')}",
-             24, 65, scale=0.55)
+    text("AMAZINGHAND  /  LIVE HOST CONTROL", 24, 34, scale=0.8)
     text(f"Object: {controller.category.upper()}  |  1 Banana   2 Apple   3 Bottle", 24, 556)
     text(f"FSM: {state['state']}   SIM: {state['sim_time_s']:.2f}s   Command #{state['seq']}", 24, 588)
     color = (70, 100, 255) if state["stopped"] else (100, 230, 150)
@@ -221,14 +191,13 @@ def draw_panel(renderer, camera, controller, state):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--headless", action="store_true", help="run real physics and local API without a window")
-    parser.add_argument("--hil", help="Z19 HIL server HOST:PORT; requires matching AHIL hardware")
     parser.add_argument("--port", type=int, default=8767)
     parser.add_argument("--duration", type=float, default=None, help="optional wall-clock duration in seconds")
     parser.add_argument("--snapshot", type=Path, help="save the last rendered panel (GUI mode)")
     args = parser.parse_args(argv)
     if args.duration is not None and (not math.isfinite(args.duration) or args.duration <= 0):
         parser.error("duration must be positive and finite")
-    controller = HilController(args.hil) if args.hil else LiveController()
+    controller = LiveController()
     mailbox = CommandMailbox()
     server = None
     renderer = None

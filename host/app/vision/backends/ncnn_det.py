@@ -1,4 +1,4 @@
-"""NCNN 检测后端 —— 板端保底推理（A53 CPU），底层 ncnn API + YOLOv8 头后处理。
+"""NCNN 检测后端 —— 树莓派/PC CPU 推理，底层 ncnn API + YOLOv8 头后处理。
 
 模型：``tools/export_yolo_ncnn.py`` 导出（yolov8n @416，COCO 预训练），
 IO 张量名 in0/out0，输出 [1, 84, N]（4 box(xywh) + 80 cls，未 NMS）。
@@ -53,7 +53,7 @@ class NcnnDetector(BaseDetector):
         model_dir = Path(model_dir)
         self._net = ncnn.Net()
         self._net.opt.num_threads = num_threads
-        self._net.opt.use_vulkan_compute = False  # Z19 无 GPU，A53 多线程
+        self._net.opt.use_vulkan_compute = False  # 树莓派/PC 无 GPU，CPU 多线程
         param = model_dir / "model.ncnn.param"
         binw = model_dir / "model.ncnn.bin"
         if not param.exists() or not binw.exists():

@@ -1,0 +1,3 @@
+# STM32 固件树（CubeMX 生成段 + 厂商库 + 手写驱动）整体禁用 clang-format：
+# 重新生成不得产生格式化差异。决议见 docs/adr/accepted/2026-09-15-clang-format-scope.md
+DisableFormat: true

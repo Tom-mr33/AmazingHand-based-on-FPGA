@@ -1,3 +1,0 @@
-AHIL PL schema1 ready on 192.28.14.153:8765
-session stopped: [Errno 104] Connection reset by peer
-AHIL PL schema1 ready on 192.28.14.153:8765

@@ -1,7 +1,7 @@
-"""检测调度器 —— 按 settings.yaml 选择 NCNN/DPU 后端（architecture.md 规则 1）。
+"""检测调度器 —— 按 settings.yaml 选择 NCNN 后端。
 
 类别体系：内部物品名（banana/apple/...，与 grasp_table.json 键一致）
-↔ COCO 80 类 id（YOLO 预训练）。15 类规则物品清单见 project_framework §2。
+↔ COCO 80 类 id（YOLO 预训练）。
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ ITEM_TO_COCO: dict[str, int] = {
 #: 反查表（后端输出 COCO id → 内部名）
 COCO_TO_ITEM: dict[int, str] = {v: k for k, v in ITEM_TO_COCO.items()}
 
-#: 默认置信度阈值（现场光照波动时由 app 层自适应，project_framework 风险兜底）
+#: 默认置信度阈值（现场光照波动时由 app 层自适应）
 DEFAULT_CONF = 0.35
 DEFAULT_IOU = 0.45
 
@@ -77,7 +77,7 @@ class BaseDetector(ABC):
 
 
 def build_detector(settings: dict) -> BaseDetector:
-    """后端工厂：settings['vision']['backend'] = ncnn | dpu。"""
+    """后端工厂：settings['vision']['backend'] = ncnn。"""
     vs = settings.get("vision", {})
     backend = vs.get("backend", "ncnn")
     conf = float(vs.get("conf_threshold", DEFAULT_CONF))
@@ -88,8 +88,4 @@ def build_detector(settings: dict) -> BaseDetector:
         return NcnnDetector(model_dir=vs["ncnn"]["model_dir"],
                             input_size=int(vs["ncnn"].get("input_size", 416)),
                             conf=conf, iou=iou)
-    if backend == "dpu":
-        from app.vision.backends.dpu_det import DpuDetector
-
-        return DpuDetector(xmodel=vs["dpu"]["xmodel"], conf=conf, iou=iou)
     raise ValueError(f"unknown vision backend: {backend}")

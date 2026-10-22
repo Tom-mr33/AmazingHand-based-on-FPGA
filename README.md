@@ -1,87 +1,104 @@
-# Amazing Hand AI — 人机协作智能辅助手
+# Amazing Hand AI — 树莓派 + STM32 人机协作智能辅助手
 
-基于 AMD Zynq UltraScale+ MPSoC（ALINX Z19, XCZU19EG）的人机协作抓取系统。
-目标流程：语音指定目标 → 端侧视觉识别物体并估计尺寸 → 引导人手就位 → FPGA 实时力控完成抓取。
-目标为全系统单板自主运行、无云端依赖；目前已完成相机基础链路，整手闭环仍待集成。
-
-> 设计哲学：**模糊性交给 AI（PS/DPU），确定性交给 RTL（PL）**
+基于树莓派（Linux / Python）与 STM32F103C8T6 的人机协作抓取系统：
+语音指定目标 → 树莓派端侧视觉识别/估计尺寸 → 引导人手就位 →
+STM32 实时总线驱动 8 × SCS0009 完成抓取/保持/释放。
 
 ## 系统架构
 
-```
-PS (Linux / Cortex-A53)：语音命令词识别 → YOLO 检测 + 单目尺寸估计 → 抓取策略查表 → ArUco 就位引导
-PL (RTL，待实现)：单条半双工总线控制 8 个舵机 + 基于负载反馈的抓握监督与保护状态机
-执行器：8 × Feetech SCS0009 → AmazingHand（pollen-robotics 开源灵巧手）
-```
+~~~
+树莓派（Linux / Python）
+  语音命令词 -> YOLO 检测 + 单目尺寸 -> 抓取策略 -> 主状态机/UI
+        │  UART 115200（二进制协议）
+        ▼
+STM32F103C8T6（当前字节泵；后续接管抓取 FSM/保护/看门狗）
+        │  1 Mbps 单线半双工
+        ▼
+8 × Feetech SCS0009 -> AmazingHand
+~~~
 
-详细设计见 [docs/design/architecture.md](docs/design/architecture.md)。
+设计原则：**模糊性交给 Pi（AI/策略），确定性交给 STM32（固定时序/保护）**。
 
-FPGA工作计划、技术设计、施工步骤与验收见 [FPGA开发文档入口](docs/fpga/README.md)。
-第一版要求在 **2026-10-15 前完成真实灵巧手抓取**；建议10-14验收交付。
-现有相机工程/平台已归档，手控制 RTL 与接口仍需修订、仿真和实机验收，不能写成已完成抓取。
+## 当前状态
 
-## 当前已验证功能（2026-10-10）
-
-| 功能 | 实测结果 | 实现与操作说明 |
+| 模块 | 状态 | 证据/边界 |
 |---|---|---|
-| Linux SD 启动 | ext4 系统安装、自己的 root 登录、一轮断电启动通过 | [SD 部署记录](docs/fpga/linux_sd_bringup.md) |
-| 电脑直连与 SSH | PS 网口 100 Mbps 全双工，SSH/SCP/hash 核对通过 | [相机快速操作](docs/fpga/camera_quickstart.md) |
-| CAM0 采集 | IMX214 真正 1920×1080，连续十分钟、DMA 错误/空样本为零 | [Linux 相机源码](host/camera_linux/README.md) |
-| 高清实时视频 | 30 秒收到 757 张不同的 1080p JPEG，约 25.16 fps，逐张解码通过 | [验收记录](docs/fpga/linux_camera0_bringup.md) |
-| 控制及故障处理 | 启停、手动焦距、过期画面拒绝、采集异常后停 DMA/重新启动通过 | [功能及交付清单](docs/fpga/camera_delivery_20261010.md) |
-| 相机硬件归档 | 已使用的 bit/XSA、原 BD/XDC、依赖 IP 源码及文件 hash | [硬件工程说明](fpga/camera_hw/README.md) |
+| 树莓派 + STM32 传输层 | 代码就绪 | `mcu_link.py` / `backend_mcu.py`；7 项无硬件单测通过 |
+| STM32 透传固件 | 代码就绪，未实机 | `firmware/stm32/`；**尚未编译/烧录**，首次上电需自检 |
+| STM32 控制协议/后端 | 协议层就绪 | `stm32_protocol.py` + `backend_stm32.py` + `ah_protocol.c`；固件调度/FSM 未接 |
+| Pi 侧软件 FSM（bring-up） | 代码就绪 | `backend_mcu` 跑软件 FSM；115200 限制 ≤100 Hz，正式控制改用 stm32 后端 |
+| SCS 协议/单舵机工具 | 代码就绪，未实机 | `blink_servo.py --via mcu`、`probe_servos.py --via mcu` |
+| 真实语音/视觉接入 | 未完成 | 现有 `kws.py` / `vision` 仍为骨架/Mock 入口 |
+| 实物标定/抓取 | 未开始 | 待单舵机 ID/方向/中位标定后再整手 |
 
-当前没有开机自动加载相机、第二路验收、自动对焦、目标识别或真实灵巧手闭环。
-约 25 fps 指电脑接收测试，不代表固定 30 fps 或无丢帧的传感器采集。
+> 诚实边界：当前没有真实舵机、真实相机或真实抓取验收；不要用 PC 模拟结果替代。
 
 ## 目录结构
 
-```
-fpga/    相机硬件工程/bit/XSA、历史裸核验证；手控制 RTL/仿真/构建输入
-host/    Linux 相机驱动/采集/实时预览、板端脚本；语音/视觉/控制骨架
-tools/   SD 制作/安全检查、串口日志与测试；标定工具按实施状态确认
-sim/     MuJoCo 数字孪生：抓取参数离线验证
-data/    标定结果与实测指标
-docs/    项目框架、设计文档、开发日志
-skill/   技能包（比赛交付）
-report/  设计报告（比赛交付）
-```
+~~~
+firmware/stm32/   STM32F103C8T6 SCS 总线固件（HAL/CMake）
+host/             树莓派/Python：控制后端、策略、视觉、语音、配置、测试
+tools/            PC/Pi 工具：单舵机摆动、总线探测、模型导出、标定
+sim/              PC 端 MuJoCo 数字孪生（不装到树莓派）
+data/             标定结果与实测指标
+docs/             架构、协议、开发日志
+~~~
 
 ## 快速开始
 
-相机实机操作从 [相机快速操作](docs/fpga/camera_quickstart.md) 开始。
-当前硬件为 **Z19 + FL0214/IMX214 MIPI 第一通道**，板端使用 Linux 5.4/PetaLinux 2020.2 基线。
-Git 中包含源码、平台与已验证相机二进制；SD 系统镜像、登录密码/SSH 私钥和现场录像留在本机。
-其他成员准备同一基线系统及自己的 SSH 认证后，按 [交付清单](docs/fpga/camera_delivery_20261010.md) 复现。
+### PC 模拟链路（不接硬件）
 
-已有 PC 模拟链路可运行 `python host/tests/smoke_test_control.py`、`python host/tests/smoke_test_backend.py`，
-或 `python host/app/main.py --mock-voice "抓起香蕉,放下"`；通过不代表真实抓取或协议已实机核验。
-新增实时交互入口：`.venv/Scripts/python.exe host/app/main.py --mujoco`，支持当次输入控制、
-MuJoCo 实测反馈和锁存停止；环境准备与按键操作见 [实时控制说明](sim/LIVE_CONTROL.md)。
-该演示是手部仿真控制，不代表物体抓取或实板 HIL 已验收。
-整手接线、舵机标定、语音/识别模型和闭环运行步骤仍按 [实施状态](docs/fpga/implementation_progress.md) 推进。
+~~~sh
+python host/tests/smoke_test_control.py
+python host/tests/smoke_test_backend.py
+python host/app/main.py --mock-voice "抓起香蕉,放下"
+~~~
+
+MuJoCo 实时演示见 [sim/LIVE_CONTROL.md](sim/LIVE_CONTROL.md)。
+
+### 树莓派 + STM32
+
+1. 硬件：Pi、STM32F103C8T6、8 × SCS0009、**独立 5V 电源**、USB 相机、USB 麦克风。
+2. 接线：Pi UART TX/RX ↔ STM32 PA3/PA2；STM32 PA9 ↔ 舵机 DATA；共地；
+   舵机 5V 独立供电。完整表见
+   [firmware/stm32/README.md](firmware/stm32/README.md)。
+3. 刷固件：ARM 工具链编译后 ST-Link 烧录（见固件 README）。
+4. 单舵机验证：
+
+   ~~~sh
+   python tools/blink_servo.py --port /dev/serial0 --via mcu --id 1
+   python tools/probe_servos.py --port /dev/serial0 --via mcu
+   ~~~
+
+5. 配置 `host/config/settings.yaml`：bring-up 用 `backend: mcu`；控制固件完成后用 `backend: stm32`。
+6. 跑主流程（当前仅 mock 语音入口）：
+
+   ~~~sh
+   python host/app/main.py --backend mcu --mock-voice "抓起香蕉,放下"
+   ~~~
+
+Pi 依赖：`pip install -r requirements-pi.txt`。系统建议 Raspberry Pi OS 64-bit
+Bookworm（Python 3.11）；旧版 Python 3.9 不支持部分类型语法。
 
 ## 开发状态
 
-- [x] 方案定稿与系统设计
-- [x] Python协议参考模型与Host骨架（模拟测试通过，协议实物参数待复核）
-- [ ] AmazingHand实物可用性与标定交接（历史日志记录已组装，本轮尚未核实）
-- [x] Z19 Linux SD、一次冷启动、电脑直连 SSH
-- [x] 单路 MIPI 相机 Linux 采集与 1080p 实时预览
-- [x] 相机工程/已验证平台/源码/功能说明归档
-- [ ] RTL 舵机总线控制器与力控状态机
-- [ ] 视觉与语音链路
-- [ ] 系统集成与指标实测
+- [x] 树莓派 + STM32 传输层/后端/单测
+- [x] STM32 透传固件工程（待实机编译/烧录）
+- [x] STM32 控制协议 + Pi 侧 `backend_stm32`（协议层）
+- [ ] STM32 固件 SCS 调度 + FSM/保护/看门狗（Phase 2）
+- [ ] 8 舵机 ID/方向/中位标定（下一优先级）
+- [ ] Pi 真实语音/视觉接入
+- [ ] 整手抓取/保持/释放与指标实测
 
-进度详见 [docs/log/](docs/log/)。
+进度详见 [docs/log/](docs/log/)。采购清单见 [docs/procurement.md](docs/procurement.md)。
 
 ## 许可证
 
-项目代码默认 Apache-2.0，以各文件声明为准。Linux 相机内核模块声明 GPL；
-归档的供应方 IP 保留原有版权/许可，Digilent 核包含 MIT 声明，不统一重授权为 Apache。
+项目代码默认 Apache-2.0，以各文件声明为准。STM32 HAL/CMSIS 保留 ST 原始许可；
+第三方依赖保留原有版权/许可，不统一重授权为 Apache。
 机械结构继承 [AmazingHand](https://github.com/pollen-robotics/AmazingHand) 的 CC-BY 4.0。
 
 ## 致谢
 
 - [Pollen Robotics — AmazingHand](https://github.com/pollen-robotics/AmazingHand)
-- AMD Xilinx Vitis AI / PYNQ 社区
+- [Feetech SCS 系列](https://www.feetechrc.com/)

@@ -35,7 +35,7 @@
 
 ## AmazingHand 当前约束
 
-- 本人正在推进 Issue [#10](https://github.com/Tom-mr33/AmazingHand-based-on-FPGA/issues/10)（Host → MuJoCo 实时控制）与 [#11](https://github.com/Tom-mr33/AmazingHand-based-on-FPGA/issues/11)（Z19 PS/PL 控制与硬件在环联调）。两者尽量并行，但共享接口应在各自 Issue/PR 中明确。
+- 本人正在推进 Issue [#10](https://github.com/Tom-mr33/AmazingHand-based-on-stm32/issues/10)（Host → MuJoCo 实时控制）与 [#11](https://github.com/Tom-mr33/AmazingHand-based-on-stm32/issues/11)（Z19 PS/PL 控制与硬件在环联调）。两者尽量并行，但共享接口应在各自 Issue/PR 中明确。
 - `fix/fpga-xsim-bringup` 已有历史 RTL 修复；仅按需审查、选择性继承，不能无条件覆盖新代码。
 - 保持已验证的相机 BD/XDC/IP、bit/XSA、Linux SD 及其原始证据不变；手控制使用独立工程和产物目录。
 - 真实 SCS0009 协议、标定、安全范围、电平转换与 FMC 引脚需现场确认。现有文档记录相机与旧舵机信号 L17 冲突，AU18 只是候选；未核定前不直连舵机或擅自改拨码。

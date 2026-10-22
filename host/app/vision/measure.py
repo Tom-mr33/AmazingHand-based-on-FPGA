@@ -1,4 +1,4 @@
-"""俯视单目几何测尺寸 —— bbox（像素）→ 物理尺寸（mm）（project_framework F2b）。
+"""俯视单目几何测尺寸 —— bbox（像素）→ 物理尺寸（mm）。
 
 原理：俯视相机安装高度已知 → 地面 mm/pixel 恒定 →
 物体顶面宽/长 = bbox_w/bbox_h × scale。

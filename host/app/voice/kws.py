@@ -1,4 +1,4 @@
-"""离线中文命令词识别 —— Vosk 小模型 + 语法限词表（project_framework F1）。
+"""离线中文命令词识别 —— Vosk 小模型 + 语法限词表。
 
 设计：
 - **语法限词**：Vosk ``SetGrammar`` 把识别空间限制到命令词表内
@@ -103,7 +103,7 @@ class ZhCommandKws:
             self._rec.SetGrammar(self._grammar)
 
     # ------------------------------------------------------------------
-    # 流式接口（麦克风路径，板端 run_app.sh 使用）
+    # 流式接口（麦克风路径，树莓派使用）
     # ------------------------------------------------------------------
 
     def feed(self, pcm_bytes: bytes) -> Command | None:
@@ -153,7 +153,7 @@ class ZhCommandKws:
 class MicVoiceSource:
     """麦克风 → Kws → 命令队列（main.VoiceSource 协议实现，板端 run_app.sh 使用）。
 
-    依赖 pyaudio（板端 setup_z19.sh 安装）；PC 无麦克风/依赖时构造报错，
+    依赖 pyaudio（树莓派/PC 安装）；无麦克风/依赖时构造报错，
     PC 演示请用 main.MockVoice。
     """
 

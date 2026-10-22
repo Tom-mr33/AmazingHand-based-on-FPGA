@@ -14,8 +14,7 @@
 3. 虚拟总线闭环 —— PING / 写目标/回读位置 / 限速 / SYNC_WRITE 广播
 4. 故障注入 —— 掉线 / 堵转 / 过温切断（grasp_fsm 保护逻辑的行为预期）
 
-RTL 对照：这些用例定义了 ``fpga/sim/scs_slave_model.sv`` 与
-``fpga/rtl/scs_protocol.sv`` 必须复现的行为；TB 将以同一帧序列比对输出。
+这些用例同时是 SCS 协议与虚拟总线的回归基线。
 """
 
 from __future__ import annotations
